@@ -17,6 +17,11 @@
         En reservarPista la variable vPistasLibres es un cursor que apunta a posiciones de reserva libres.
         *Ver comentarios en código de OPEN, FETCH, CLOSE y FOUND/NOTFOUND*
 
+        -- 4. Semanticamnete no daría lo mismo sustituir en anularReserva el commit y el rollback.
+        El commit confirmaría el borrado de la reserva al encontrar un registro coincidente que si fuera un rollback no se haría. (error)
+        El rollback se llevaría a cabo si no hubiera registros afectados en cuyo casi si daría igual hacer un commit pero no tendría el mismo significado semántico,
+        pues la función devuelve 1 o 0 en función del éxito de la misma. Al hacer commit estamos suponiendo un éxito de la misma.
+
 */
 
 
@@ -83,6 +88,7 @@ begin
 		rollback;
 		return 0;
 	end if;
+
 end;
 /
 
