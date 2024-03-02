@@ -144,6 +144,35 @@ EXCEPTION
 END;
 /
 
+-- Paso 2. Bloque anonimo
+BEGIN
+    -- 2.1 Tres reservas válidas.
+    dbms_output.put_line('Intento 1, Socio 1: ' || reservarPista('Socio 1', CURRENT_DATE, 12));
+    dbms_output.put_line('Intento 2, Socio 2: ' || reservarPista('Socio 2', CURRENT_DATE, 12));
+    dbms_output.put_line('Intento 3, Socio 3: ' || reservarPista('Socio 3', CURRENT_DATE, 12));
+    
+    -- 2.2 Intento de una cuarta reserva, que debería fallar.
+    dbms_output.put_line('Intento 4, Socio 4 (debería fallar): ' || reservarPista('Socio 4', CURRENT_DATE, 12));
+    
+    -- 2.3 Anula una reserva válida.
+    dbms_output.put_line('Anulación 1, Socio 1: ' || anularReserva('Socio 1', CURRENT_DATE, 12, 1));
+    
+    -- 2.4 Borrado de reserva inexistente
+    dbms_output.put_line('Anulación 2, Socio 1 en fecha inexistente: ' || anularReserva('Socio 1', DATE '1920-1-1', 12, 1));
+
+    -- 2.2 Select para confirmar que ha funcionado todo:
+    dbms_output.put_line('Estado final de las reservas:');
+    FOR r IN (SELECT pista, fecha, hora, socio FROM reservas ORDER BY pista, fecha, hora) LOOP
+        dbms_output.put_line('Pista: ' || r.pista || ', Fecha: ' || r.fecha || ', Hora: ' || r.hora || ', Socio: ' || r.socio);
+    END LOOP;
+
+END;
+/
+
+
+
+
+
 /*
 SET SERVEROUTPUT ON
 declare
