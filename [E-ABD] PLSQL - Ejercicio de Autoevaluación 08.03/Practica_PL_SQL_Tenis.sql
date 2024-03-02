@@ -22,6 +22,9 @@
         El rollback se llevaría a cabo si no hubiera registros afectados en cuyo casi si daría igual hacer un commit pero no tendría el mismo significado semántico,
         pues la función devuelve 1 o 0 en función del éxito de la misma. Al hacer commit estamos suponiendo un éxito de la misma.
 
+        -- 5. La función reservarPista puede sufrir excepciones o errores que no están siendo capturados y dejar la transición abierta.
+        Para solucionarlo habría que manejar las excepciones, se realizan cambios a continuación en la función.
+
 */
 
 
@@ -128,6 +131,16 @@ BEGIN
     CLOSE vPistasLibres;
     COMMIT;
     RETURN 1;
+
+-- 5. Si se produce excepción durante la función se ejecuta este código para no dejar transiciones abiertas.
+EXCEPTION
+    WHEN OTHERS THEN -- Cualquier tipo de excepción se pone OTHERS en los apuntes.
+        IF vPistasLibres%ISOPEN THEN -- Cierra el cursor
+            CLOSE vPistasLibres;
+        END IF;
+        ROLLBACK; -- Revierte cambios
+        RETURN 0; -- Devuelve fallo
+    
 END;
 /
 
