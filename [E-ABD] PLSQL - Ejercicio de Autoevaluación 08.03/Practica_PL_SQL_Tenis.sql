@@ -143,7 +143,7 @@ EXCEPTION
     
 END;
 /
-
+/*
 -- Paso 2. Bloque anonimo
 BEGIN
     -- 2.1 Tres reservas válidas.
@@ -168,6 +168,40 @@ BEGIN
 
 END;
 /
+*/
+-- Paso 4: mismo código pero dentro de función
+CREATE OR REPLACE PROCEDURE TEST_FUNCIONES_TENIS IS
+BEGIN
+    -- Realizar tres reservas válidas.
+    dbms_output.put_line('Intento 1, Socio 1: ' || reservarPista('Socio 1', CURRENT_DATE, 12));
+    dbms_output.put_line('Intento 2, Socio 2: ' || reservarPista('Socio 2', CURRENT_DATE, 12));
+    dbms_output.put_line('Intento 3, Socio 3: ' || reservarPista('Socio 3', CURRENT_DATE, 12));
+    
+    -- Intento de una cuarta reserva, que debería fallar.
+    dbms_output.put_line('Intento 4, Socio 4 (debería fallar): ' || reservarPista('Socio 4', CURRENT_DATE, 12));
+    
+    -- Anular una reserva válida.
+    dbms_output.put_line('Anulación 1, Socio 1: ' || anularReserva('Socio 1', CURRENT_DATE, 12, 1));
+    
+    -- Intento de anular una reserva inexistente.
+    dbms_output.put_line('Anulación 2, Socio 1 en fecha inexistente: ' || anularReserva('Socio 1', DATE '1920-1-1', 12, 1));
+    
+    -- Mostrar el estado final de las reservas.
+    dbms_output.put_line('Estado final de las reservas:');
+    FOR r IN (SELECT pista, fecha, hora, socio FROM reservas ORDER BY pista, fecha, hora) LOOP
+        dbms_output.put_line('Pista: ' || r.pista || ', Fecha: ' || TO_CHAR(r.fecha, 'DD/MM/YYYY') || ', Hora: ' || r.hora || ', Socio: ' || r.socio);
+    END LOOP;
+END;
+/
+
+-- Bloque anónimo llamando a función.
+BEGIN
+    TEST_FUNCIONES_TENIS;
+END;
+/
+-- Llamada con execute
+-- EXEC TEST_FUNCIONES_TENIS;
+
 
 
 
