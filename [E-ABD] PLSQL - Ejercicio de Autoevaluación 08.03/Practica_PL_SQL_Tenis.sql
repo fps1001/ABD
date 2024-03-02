@@ -6,7 +6,16 @@
     [E-ABD] PLSQL - Ejercicio de Autoevaluación 08.03
 
     Respuestas a las preguntas:
-        -- 1. - Trunca las fechas para comparar solo los días
+        -- 1. - Trunca las fechas para comparar solo los días.
+
+        -- 2. sql%rowcount devuelve el número de filas que han sido afectadas.
+        En este caso si ha sido afectada una fila significa que se ha borrado con éxito la reserva.
+        porque ha encontrado un registro coincidente con los parámetros de la función.
+        Si no ha encontrado ninguna fila afectada es porque no hay reserva con los datos dados.
+
+        -- 3. Una variable de tipo cursor es un puntero que permite navegar por los registros.
+        En reservarPista la variable vPistasLibres es un cursor que apunta a posiciones de reserva libres.
+        *Ver comentarios en código de OPEN, FETCH, CLOSE y FOUND/NOTFOUND*
 
 */
 
@@ -99,16 +108,17 @@ RETURN INTEGER IS
     vPista INTEGER;
 
 BEGIN
-    OPEN vPistasLibres;
-    FETCH vPistasLibres INTO vPista;
+    OPEN vPistasLibres; -- Ejecuta la consulta de arriba.
+    FETCH vPistasLibres INTO vPista; -- Recupera la siguiente fila del resultado de la consulta.
 
-    IF vPistasLibres%NOTFOUND
+    IF vPistasLibres%NOTFOUND -- Si el valor del cursor es NOTFOUND es TRUE es que no hay pistas libres.
+                              -- %FOUND devolvería TRUE si recuperó alguna fila.
     THEN
-        CLOSE vPistasLibres;
-        RETURN 0;
+        CLOSE vPistasLibres; -- Libera los recursos.
+        RETURN 0; -- reservarPista devuelve 0 (sin éxito)
     END IF;
 
-    INSERT INTO reservas VALUES (vPista, p_fecha, p_hora, p_socio);
+    INSERT INTO reservas VALUES (vPista, p_fecha, p_hora, p_socio); -- Si llega hasta aquí es que hay registros con pistas libres
     CLOSE vPistasLibres;
     COMMIT;
     RETURN 1;
