@@ -2,6 +2,7 @@
     Aplicaciones de Bases de Datos.
     Ingeniería Informática. UBU. Curso 23-24
     Fernando Pisot Serrano fps1001@alu.ubu.es
+    Repositorio github: https://github.com/fps1001/ABD 
     
     [E-ABD] PLSQL - Ejercicio de Autoevaluación 08.03
 
@@ -9,6 +10,7 @@
     en los casos en que la reserva por ejemplo no exista o que no haya pistas libres disponibles.
 
 */
+
 -- Creamos procedures pRservarPista y pAnularReserva
 CREATE OR REPLACE PROCEDURE pAnularReserva( 
     p_socio VARCHAR,
@@ -58,7 +60,7 @@ BEGIN
         CLOSE vPistasLibres;
         COMMIT;
     END IF;
-EXCEPTION
+EXCEPTION -- Para el resto de excepciones, cerramos y hacemos rollback a los cambios.
     WHEN OTHERS THEN
         IF vPistasLibres%ISOPEN THEN
             CLOSE vPistasLibres;
@@ -103,7 +105,7 @@ BEGIN
             dbms_output.put_line('Anulación 2, Socio 1 en fecha inexistente: OK');
     END;
 
-    -- Mostrar el estado final de las reservas.
+    -- Imprimo el estado final de todas las reservas.
     dbms_output.put_line('Estado final de las reservas:');
     FOR r IN (SELECT pista, fecha, hora, socio FROM reservas ORDER BY pista, fecha, hora) LOOP
         dbms_output.put_line('Pista: ' || r.pista || ', Fecha: ' || TO_CHAR(r.fecha, 'DD/MM/YYYY') || ', Hora: ' || r.hora || ', Socio: ' || r.socio);
@@ -114,3 +116,19 @@ EXCEPTION
         ROLLBACK;
 END;
 /
+
+
+/* Paso 6: si 2 transacciones ReservarPista se solapan en el tiempo queriendo ambas reservar la última pista que queda libre en una 
+determinada fecha y hora y si sugieres algún arreglo al respecto
+
+Sólo una de las dos reservas concurrentes tendrá éxito mientras que la otra dará error.
+Habría que implementar un control de concurrencia para solucionarlo. Los apuntes mencionan un bloqueo implícito con SELECT FOR UPDATE pero no veo como aplicarlo al contexto.
+Sería suficiente con mantener un nivel de aislamiento a nivel de sesión que garantice un control de concurrencia.
+Por ejemplo si pusieramos:
+SET TRANSACTION ISOLATION LEVEL SERIALIZABLE
+lo que garantizaría que la sesión antes de ejecutarse el procemiento tendría un nivel de aislamiento serializable.
+Aunque esta solución no se puede aplicar al procedimiento almacenado.
+También se podría hacer con reintentos controlados pero en el caso que nos ocupa darían fallo salvo que volviera a quedar libre la reserva.
+
+
+*/

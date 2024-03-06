@@ -2,6 +2,7 @@
     Aplicaciones de Bases de Datos.
     Ingeniería Informática. UBU. Curso 23-24
     Fernando Pisot Serrano fps1001@alu.ubu.es
+    Repositorio github: https://github.com/fps1001/ABD 
     
     [E-ABD] PLSQL - Ejercicio de Autoevaluación 08.03
 
