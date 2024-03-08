@@ -170,6 +170,16 @@ BEGIN
 END;
 /
 */
+
+-- Paso 3: Script para ejecutar que da privilegios al usuario hr para poder usar el debugger:
+GRANT DEBUG CONNECT SESSION TO hr;
+GRANT DEBUG ANY PROCEDURE TO hr;
+GRANT SELECT ANY DICTIONARY TO hr;
+-- Da error si no se conecta como SYSDBA a la base de datos por falta de privilegios.
+-- Creo el acceso con sys/1234 que no había hecho con rol SYSDBA y ejecuto marcandome: Grnt correcto.
+-- Ejecuto con el debuuger la función sin problemas realizando una reserva que vuelvo a borrar.
+
+
 -- Paso 4: mismo código pero dentro de función
 CREATE OR REPLACE PROCEDURE TEST_FUNCIONES_TENIS IS
 BEGIN
@@ -238,3 +248,55 @@ end;
 /
 */
 
+
+/*
+-- SALIDA DE SCRIPT AL EJECUTAR EL SCRIPT
+
+
+
+Table PISTAS creado.
+
+
+Table RESERVAS creado.
+
+
+Sequence SEQ_PISTAS creado.
+
+
+1 fila insertadas.
+
+
+1 fila insertadas.
+
+
+1 fila insertadas.
+
+
+1 fila insertadas.
+
+
+1 fila insertadas.
+
+
+1 fila insertadas.
+
+
+1 fila insertadas.
+
+
+1 fila insertadas.
+
+Confirmación terminada.
+
+Function ANULARRESERVA compilado
+
+
+Function RESERVARPISTA compilado
+
+
+Procedure TEST_FUNCIONES_TENIS compilado
+
+Procedimiento PL/SQL terminado correctamente.
+
+
+*/
