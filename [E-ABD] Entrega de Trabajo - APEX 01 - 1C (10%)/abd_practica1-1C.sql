@@ -27,7 +27,7 @@ prompt APPLICATION 104 - e-ABD Práctica APEX 1C
 -- Application Export:
 --   Application:     104
 --   Name:            e-ABD Práctica APEX 1C
---   Date and Time:   14:40 Tuesday March 19, 2024
+--   Date and Time:   21:43 Tuesday March 19, 2024
 --   Exported By:     ADMIN
 --   Flashback:       0
 --   Export Type:     Application Export
@@ -107,7 +107,7 @@ wwv_flow_api.create_flow(
 ,p_rejoin_existing_sessions=>'N'
 ,p_csv_encoding=>'Y'
 ,p_last_updated_by=>'ADMIN'
-,p_last_upd_yyyymmddhh24miss=>'20240319143150'
+,p_last_upd_yyyymmddhh24miss=>'20240319214120'
 ,p_file_prefix => nvl(wwv_flow_application_install.get_static_app_file_prefix,'')
 ,p_ui_type_name => null
 );
@@ -9702,7 +9702,7 @@ wwv_flow_api.create_page(
 ,p_protection_level=>'C'
 ,p_cache_mode=>'NOCACHE'
 ,p_last_updated_by=>'ADMIN'
-,p_last_upd_yyyymmddhh24miss=>'20240225230641'
+,p_last_upd_yyyymmddhh24miss=>'20240319214120'
 );
 wwv_flow_api.create_page_plug(
  p_id=>wwv_flow_api.id(5430488760374142)
@@ -9735,209 +9735,94 @@ wwv_flow_api.create_page_plug(
  p_id=>wwv_flow_api.id(5440680109374215)
 ,p_plug_name=>'Inventario de productos en almacén'
 ,p_region_template_options=>'#DEFAULT#'
-,p_component_template_options=>'#DEFAULT#'
-,p_plug_template=>wwv_flow_api.id(5275213574100670)
-,p_plug_display_sequence=>30
+,p_plug_template=>wwv_flow_api.id(5274704381100669)
+,p_plug_display_sequence=>10
 ,p_include_in_reg_disp_sel_yn=>'N'
+,p_plug_grid_column_span=>12
 ,p_plug_display_point=>'BODY'
 ,p_plug_source=>wwv_flow_string.join(wwv_flow_t_varchar2(
-'select PRODUCT_ID,',
-'       WAREHOUSE_ID,',
-'       QUANTITY_ON_HAND',
-'  from OEHR_INVENTORIES',
-' where WAREHOUSE_ID = :P5_WAREHOUSE_ID'))
-,p_plug_source_type=>'NATIVE_IG'
+'SELECT i.QUANTITY_ON_HAND,',
+'       p.PRODUCT_NAME',
+'FROM OEHR_INVENTORIES i',
+'JOIN OEHR_PRODUCTS p ON i.PRODUCT_ID = p.PRODUCT_ID',
+'WHERE i.WAREHOUSE_ID = :P5_WAREHOUSE_ID;',
+''))
+,p_plug_source_type=>'NATIVE_IR'
 ,p_ajax_items_to_submit=>'P5_WAREHOUSE_ID'
-,p_plug_query_row_template=>1
 ,p_plug_query_options=>'DERIVED_REPORT_COLUMNS'
 ,p_plug_display_condition_type=>'ITEM_IS_NOT_NULL'
 ,p_plug_display_when_condition=>'P5_ROWID'
+,p_prn_content_disposition=>'ATTACHMENT'
+,p_prn_document_header=>'APEX'
+,p_prn_units=>'INCHES'
+,p_prn_paper_size=>'LETTER'
+,p_prn_width=>8.5
+,p_prn_height=>11
+,p_prn_orientation=>'HORIZONTAL'
+,p_prn_page_header_font_color=>'#000000'
+,p_prn_page_header_font_family=>'Helvetica'
+,p_prn_page_header_font_weight=>'normal'
+,p_prn_page_header_font_size=>'12'
+,p_prn_page_footer_font_color=>'#000000'
+,p_prn_page_footer_font_family=>'Helvetica'
+,p_prn_page_footer_font_weight=>'normal'
+,p_prn_page_footer_font_size=>'12'
+,p_prn_header_bg_color=>'#9bafde'
+,p_prn_header_font_color=>'#000000'
+,p_prn_header_font_family=>'Helvetica'
+,p_prn_header_font_weight=>'normal'
+,p_prn_header_font_size=>'10'
+,p_prn_body_bg_color=>'#efefef'
+,p_prn_body_font_color=>'#000000'
+,p_prn_body_font_family=>'Helvetica'
+,p_prn_body_font_weight=>'normal'
+,p_prn_body_font_size=>'10'
+,p_prn_border_width=>.5
+,p_prn_page_header_alignment=>'CENTER'
+,p_prn_page_footer_alignment=>'CENTER'
 );
-wwv_flow_api.create_region_column(
- p_id=>wwv_flow_api.id(5441768270374216)
-,p_name=>'APEX$ROW_SELECTOR'
-,p_item_type=>'NATIVE_ROW_SELECTOR'
-,p_display_sequence=>10
-,p_attribute_01=>'Y'
-,p_attribute_02=>'Y'
-,p_attribute_03=>'N'
-,p_is_primary_key=>false
-);
-wwv_flow_api.create_region_column(
- p_id=>wwv_flow_api.id(5442264705374216)
-,p_name=>'APEX$ROW_ACTION'
-,p_item_type=>'NATIVE_ROW_ACTION'
-,p_label=>'Actions'
-,p_heading_alignment=>'CENTER'
-,p_display_sequence=>20
-,p_value_alignment=>'CENTER'
-,p_is_primary_key=>false
-);
-wwv_flow_api.create_region_column(
- p_id=>wwv_flow_api.id(5442895230374216)
-,p_name=>'ROWID'
-,p_source_type=>'DB_COLUMN'
-,p_source_expression=>'ROWID'
-,p_data_type=>'ROWID'
-,p_item_type=>'NATIVE_HIDDEN'
-,p_display_sequence=>30
-,p_attribute_01=>'Y'
-,p_use_as_row_header=>false
-,p_enable_sort_group=>false
-,p_enable_pivot=>false
-,p_is_primary_key=>true
-,p_include_in_export=>false
-);
-wwv_flow_api.create_region_column(
- p_id=>wwv_flow_api.id(5443460202374216)
-,p_name=>'PRODUCT_ID'
-,p_source_type=>'DB_COLUMN'
-,p_source_expression=>'PRODUCT_ID'
-,p_data_type=>'NUMBER'
-,p_is_query_only=>false
-,p_item_type=>'NATIVE_SELECT_LIST'
-,p_heading=>'Product Id'
-,p_heading_alignment=>'RIGHT'
-,p_display_sequence=>40
-,p_value_alignment=>'RIGHT'
-,p_is_required=>true
-,p_lov_type=>'SHARED'
-,p_lov_id=>wwv_flow_api.id(5406131004657986)
-,p_lov_display_extra=>true
-,p_lov_display_null=>true
-,p_enable_filter=>true
-,p_filter_operators=>'C:S:CASE_INSENSITIVE:REGEXP'
-,p_filter_is_required=>false
-,p_filter_text_case=>'MIXED'
-,p_filter_exact_match=>true
-,p_filter_lov_type=>'LOV'
-,p_use_as_row_header=>false
-,p_enable_sort_group=>true
-,p_enable_pivot=>false
-,p_is_primary_key=>false
-,p_duplicate_value=>true
-,p_include_in_export=>true
-);
-wwv_flow_api.create_region_column(
- p_id=>wwv_flow_api.id(5444082497374216)
-,p_name=>'WAREHOUSE_ID'
-,p_source_type=>'DB_COLUMN'
-,p_source_expression=>'WAREHOUSE_ID'
-,p_data_type=>'NUMBER'
-,p_is_query_only=>false
-,p_item_type=>'NATIVE_HIDDEN'
-,p_display_sequence=>50
-,p_attribute_01=>'Y'
-,p_enable_filter=>false
-,p_is_primary_key=>false
-,p_default_type=>'ITEM'
-,p_default_expression=>'P5_WAREHOUSE_ID'
-,p_duplicate_value=>true
-,p_include_in_export=>false
-);
-wwv_flow_api.create_region_column(
- p_id=>wwv_flow_api.id(5444648278374217)
-,p_name=>'QUANTITY_ON_HAND'
-,p_source_type=>'DB_COLUMN'
-,p_source_expression=>'QUANTITY_ON_HAND'
-,p_data_type=>'NUMBER'
-,p_is_query_only=>false
-,p_item_type=>'NATIVE_NUMBER_FIELD'
-,p_heading=>'Quantity On Hand'
-,p_heading_alignment=>'RIGHT'
-,p_display_sequence=>60
-,p_value_alignment=>'RIGHT'
-,p_attribute_03=>'right'
-,p_is_required=>true
-,p_enable_filter=>true
-,p_filter_is_required=>false
-,p_filter_lov_type=>'NONE'
-,p_use_as_row_header=>false
-,p_enable_sort_group=>true
-,p_enable_pivot=>false
-,p_is_primary_key=>false
-,p_duplicate_value=>true
-,p_include_in_export=>true
-);
-wwv_flow_api.create_interactive_grid(
- p_id=>wwv_flow_api.id(5441031576374216)
-,p_internal_uid=>5441031576374216
-,p_is_editable=>true
-,p_edit_operations=>'i:u:d'
-,p_lost_update_check_type=>'VALUES'
-,p_add_row_if_empty=>true
-,p_submit_checked_rows=>false
-,p_lazy_loading=>false
-,p_requires_filter=>false
+wwv_flow_api.create_worksheet(
+ p_id=>wwv_flow_api.id(5312893839109117)
+,p_max_row_count=>'1000000'
 ,p_show_nulls_as=>'-'
-,p_fixed_row_height=>true
-,p_pagination_type=>'SCROLL'
-,p_show_total_row_count=>true
-,p_show_toolbar=>true
-,p_toolbar_buttons=>'RESET'
-,p_enable_save_public_report=>false
-,p_enable_subscriptions=>true
-,p_enable_download=>true
-,p_enable_mail_download=>true
-,p_fixed_header=>'PAGE'
-,p_show_icon_view=>false
-,p_show_detail_view=>false
+,p_pagination_type=>'ROWS_X_TO_Y'
+,p_pagination_display_pos=>'BOTTOM_RIGHT'
+,p_report_list_mode=>'TABS'
+,p_show_detail_link=>'N'
+,p_show_notify=>'Y'
+,p_download_formats=>'CSV:HTML:EMAIL:XLS:PDF:RTF'
+,p_owner=>'ADMIN'
+,p_internal_uid=>5312893839109117
 );
-wwv_flow_api.create_ig_report(
- p_id=>wwv_flow_api.id(5441495769374216)
-,p_interactive_grid_id=>wwv_flow_api.id(5441031576374216)
-,p_type=>'PRIMARY'
-,p_default_view=>'GRID'
-,p_show_row_number=>false
-,p_settings_area_expanded=>true
+wwv_flow_api.create_worksheet_column(
+ p_id=>wwv_flow_api.id(5313034377109119)
+,p_db_column_name=>'PRODUCT_NAME'
+,p_display_order=>10
+,p_column_identifier=>'B'
+,p_column_label=>'Producto'
+,p_column_type=>'STRING'
+,p_heading_alignment=>'LEFT'
 );
-wwv_flow_api.create_ig_report_view(
- p_id=>wwv_flow_api.id(5441554789374216)
-,p_report_id=>wwv_flow_api.id(5441495769374216)
-,p_view_type=>'GRID'
-,p_srv_exclude_null_values=>false
-,p_srv_only_display_columns=>true
-,p_edit_mode=>false
+wwv_flow_api.create_worksheet_column(
+ p_id=>wwv_flow_api.id(5312999155109118)
+,p_db_column_name=>'QUANTITY_ON_HAND'
+,p_display_order=>20
+,p_column_identifier=>'A'
+,p_column_label=>'Unidades disponibles'
+,p_column_type=>'NUMBER'
+,p_heading_alignment=>'RIGHT'
+,p_column_alignment=>'RIGHT'
 );
-wwv_flow_api.create_ig_report_column(
- p_id=>wwv_flow_api.id(5442616442374216)
-,p_view_id=>wwv_flow_api.id(5441554789374216)
-,p_display_seq=>0
-,p_column_id=>wwv_flow_api.id(5442264705374216)
-,p_is_visible=>true
-,p_is_frozen=>false
-);
-wwv_flow_api.create_ig_report_column(
- p_id=>wwv_flow_api.id(5443214773374216)
-,p_view_id=>wwv_flow_api.id(5441554789374216)
-,p_display_seq=>1
-,p_column_id=>wwv_flow_api.id(5442895230374216)
-,p_is_visible=>true
-,p_is_frozen=>false
-);
-wwv_flow_api.create_ig_report_column(
- p_id=>wwv_flow_api.id(5443853365374216)
-,p_view_id=>wwv_flow_api.id(5441554789374216)
-,p_display_seq=>2
-,p_column_id=>wwv_flow_api.id(5443460202374216)
-,p_is_visible=>true
-,p_is_frozen=>false
-);
-wwv_flow_api.create_ig_report_column(
- p_id=>wwv_flow_api.id(5444439019374217)
-,p_view_id=>wwv_flow_api.id(5441554789374216)
-,p_display_seq=>3
-,p_column_id=>wwv_flow_api.id(5444082497374216)
-,p_is_visible=>true
-,p_is_frozen=>false
-);
-wwv_flow_api.create_ig_report_column(
- p_id=>wwv_flow_api.id(5445018155374217)
-,p_view_id=>wwv_flow_api.id(5441554789374216)
-,p_display_seq=>4
-,p_column_id=>wwv_flow_api.id(5444648278374217)
-,p_is_visible=>true
-,p_is_frozen=>false
+wwv_flow_api.create_worksheet_rpt(
+ p_id=>wwv_flow_api.id(5504148575887672)
+,p_application_user=>'APXWS_DEFAULT'
+,p_report_seq=>10
+,p_report_alias=>'55042'
+,p_status=>'PUBLIC'
+,p_is_default=>'Y'
+,p_display_rows=>50
+,p_report_columns=>'PRODUCT_NAME:QUANTITY_ON_HAND'
+,p_flashback_enabled=>'N'
 );
 wwv_flow_api.create_page_button(
  p_id=>wwv_flow_api.id(5430915794374142)
