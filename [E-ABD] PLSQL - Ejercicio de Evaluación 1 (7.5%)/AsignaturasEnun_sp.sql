@@ -11,9 +11,12 @@ Y la instalación de
 Oracle Instant Client Downloads for Microsoft Windows (x64) 64-bit
 
 */
-
+-- Elimina la tabla 'asignaturas' si existe, incluyendo todas sus restricciones de integridad.
 drop table asignaturas cascade constraints;
 
+-- Creación de la tabla 'asignaturas' con sus respectivos campos y restricciones.
+-- Campos: idAsignatura (identificador de la asignatura), nombre, titulación a la que pertenece, y número de créditos.
+-- Restricciones: Una clave primaria compuesta por 'idAsignatura' y 'titulacion', y una restricción de unicidad para la combinación de 'nombre' y 'titulacion'.
 create table asignaturas(
   idAsignatura  integer,
   nombre        varchar(20) not null,
@@ -23,12 +26,58 @@ create table asignaturas(
   constraint UNQ_Asignaturas unique (nombre, titulacion) 
 );
 
-create or replace procedure insertaAsignatura(
+-- 1. MÉTODO CON SELECTS ---------------------------------------------------------------------------------
+-- Las nombro diferentes para no tener que comentar/descomentar el código
+create or replace procedure insertaAsignatura_con_selects(
   v_idAsignatura integer, v_nombreAsig varchar, v_titulacion varchar, v_ncreditos integer) is
 
-begin
-  null; --El null es para que compile. Sustituyelo por la implementación de la tansacción.
-end;
+BEGIN
+  INSERT INTO asignaturas VALUES (
+    v_idAsignatura, v_nombreAsig, v_titulacion, v_ncreditos
+  );
+EXCEPTION
+  WHEN OTHERS THEN
+  IF SQLCODE = -1 THEN -- Error ORA-00001 - Fallo de unidicidad
+    SELECT COUNT(*) -- Realizamos una select
+    INTO v_count
+    FROM asignaturas
+    WHERE idAsignatura = v_idAsignatura
+    AND titulacion = v_titulacion;
+
+    IF v_count > 0 THEN -- Si el contador es mayor que 0 indica que ya existe una fila con el mismo id-titulación
+      RAISE_APPLICATION_ERROR(-20000, 'La asignatura con idAsignatura=' || v_idAsignatura || ' esta repetida en la titulacion ' || v_titulacion || '.');
+    ELSE -- Si no lo tiene el fallo es debido al nombre repetido de la asignatura.
+      RAISE_APPLICATION_ERROR(-20001, 'La asignatura con nombre=' || v_nombreAsig || ' esta repetida en la titulacion ' || v_titulacion || '.');
+    END IF;
+  ELSE
+    RAISE;
+  END IF;
+  END;
+EXCEPTION
+  WHEN OTHERS THEN
+    -- TODO Mirar en los apuntes qué hacer en este caso.
+    ROLLBACK;
+    RAISE;
+END insertaAsignatura_con_selects;
+
+
+-- 1. MÉTODO CON CREATE TABLE ---------------------------------------------------------------------------------
+
+create or replace procedure insertaAsignatura_con_create(
+  v_idAsignatura integer, v_nombreAsig varchar, v_titulacion varchar, v_ncreditos integer) is
+
+BEGIN
+  INSERT INTO asignaturas VALUES (
+    v_idAsignatura,
+    v_nombreAsig,
+    v_titulacion,
+    v_ncreditos
+  );
+EXCEPTION
+  WHEN OTHERS THEN
+    -- MANEJO DE EXCEPCIONES
+    RAISE;
+END insertaAsignatura;
 /
 
 
