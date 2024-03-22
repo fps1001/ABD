@@ -5,12 +5,16 @@ Fernando Pisot Serrano fps1001@alu.ubu.es
 Repositorio github: https://github.com/fps1001/ABD 
 
 [E-ABD] PL/SQL - Ejercicio de Evaluación 1 (7.5%) - 03/04
-Esta vez voy a intentar realizar la práctica desde visual studio con la extensión: 
--Oracle Developer Tools for VS Code (SQL and PLSQL) 
+-- Además de hacer la práctica intenté lo siguiente:
+- Esta vez voy a intentar realizar la práctica desde visual studio con la extensión: 
+Oracle Developer Tools for VS Code (SQL and PLSQL) 
 Y la instalación de 
 Oracle Instant Client Downloads for Microsoft Windows (x64) 64-bit
+- Después probé con docker sin éxito.
+- 22.03.24: Probé con livesql.oracle.com me parece un poco mejor que sqldeveloper: sobretodo la salida de compilador.
 
 */
+
 -- Elimina la tabla 'asignaturas' si existe, incluyendo todas sus restricciones de integridad.
 drop table asignaturas cascade constraints;
 
@@ -28,42 +32,32 @@ create table asignaturas(
 
 -- 1. MÉTODO CON SELECTS ---------------------------------------------------------------------------------
 -- Las nombro diferentes para no tener que comentar/descomentar el código
-create or replace procedure insertaAsignatura_con_selects(
+create or replace procedure insertaAsignatura(
   v_idAsignatura integer, v_nombreAsig varchar, v_titulacion varchar, v_ncreditos integer) is
-
+  v_count integer; -- Declaración de la variable contador
 BEGIN
   INSERT INTO asignaturas VALUES (
-    v_idAsignatura, v_nombreAsig, v_titulacion, v_ncreditos
-  );
+    v_idAsignatura, v_nombreAsig, v_titulacion, v_ncreditos);
 EXCEPTION
   WHEN OTHERS THEN
-  IF SQLCODE = -1 THEN -- Error ORA-00001 - Fallo de unidicidad
-    SELECT COUNT(*) -- Realizamos una select
-    INTO v_count
-    FROM asignaturas
-    WHERE idAsignatura = v_idAsignatura
-    AND titulacion = v_titulacion;
+    IF SQLCODE = -1 THEN  -- Error ORA-00001 - Fallo de unidicidad
+      SELECT COUNT(*) INTO v_count FROM asignaturas -- Realizamos una select que devolverá el número de registros que coinciden
+      WHERE idAsignatura = v_idAsignatura AND titulacion = v_titulacion;
 
-    IF v_count > 0 THEN -- Si el contador es mayor que 0 indica que ya existe una fila con el mismo id-titulación
-      RAISE_APPLICATION_ERROR(-20000, 'La asignatura con idAsignatura=' || v_idAsignatura || ' esta repetida en la titulacion ' || v_titulacion || '.');
-    ELSE -- Si no lo tiene el fallo es debido al nombre repetido de la asignatura.
-      RAISE_APPLICATION_ERROR(-20001, 'La asignatura con nombre=' || v_nombreAsig || ' esta repetida en la titulacion ' || v_titulacion || '.');
+      IF v_count > 0 THEN -- Si el contador es mayor que 0 indica que ya existe una fila con el mismo id-titulación
+        RAISE_APPLICATION_ERROR(-20000, 'La asignatura con idAsignatura=' || v_idAsignatura || ' está repetida en la titulación ' || v_titulacion || '.');
+      ELSE  -- Si no lo tiene el fallo es debido al nombre repetido de la asignatura.
+        RAISE_APPLICATION_ERROR(-20001, 'La asignatura con nombre=' || v_nombreAsig || ' está repetida en la titulación ' || v_titulacion || '.');
+      END IF;
+    ELSE
+      RAISE;
     END IF;
-  ELSE
-    RAISE;
-  END IF;
-  END;
-EXCEPTION
-  WHEN OTHERS THEN
-    -- TODO Mirar en los apuntes qué hacer en este caso.
-    ROLLBACK;
-    RAISE;
-END insertaAsignatura_con_selects;
-
+END insertaAsignatura;
+/
 
 -- 1. MÉTODO CON CREATE TABLE ---------------------------------------------------------------------------------
 
-create or replace procedure insertaAsignatura_con_create(
+create or replace procedure insertaAsignatura_con_sqlerrm(
   v_idAsignatura integer, v_nombreAsig varchar, v_titulacion varchar, v_ncreditos integer) is
 
 BEGIN
@@ -75,9 +69,18 @@ BEGIN
   );
 EXCEPTION
   WHEN OTHERS THEN
-    -- MANEJO DE EXCEPCIONES
-    RAISE;
-END insertaAsignatura;
+    IF SQLCODE = -1 THEN -- Error ORA-00001 - Fallo de unidicidad
+      IF SQLERRM LIKE '%asignaturas_pk%' THEN -- Se examina la variable del sistema. El texto de la misma indica en que parte está el error.
+        RAISE_APPLICATION_ERROR(-20000, 'La asignatura con idAsignatura=' || v_idAsignatura || ' esta repetida en la titulacion ' || v_titulacion || '.');
+      ELSIF SQLERRM LIKE '%asignaturas_nombre_uk%' THEN
+        RAISE_APPLICATION_ERROR(-20001, 'La asignatura con nombre=' || v_nombreAsig || ' esta repetida en la titulacion ' || v_titulacion || '.');
+      ELSE
+        RAISE;
+      END IF;
+    ELSE
+      RAISE;
+    END IF;
+END insertaAsignatura_con_sqlerrm;
 /
 
 
