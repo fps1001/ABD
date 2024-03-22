@@ -16,7 +16,17 @@ Oracle Instant Client Downloads for Microsoft Windows (x64) 64-bit
 */
 
 -- Elimina la tabla 'asignaturas' si existe, incluyendo todas sus restricciones de integridad.
-drop table asignaturas cascade constraints;
+BEGIN
+   EXECUTE IMMEDIATE 'DROP TABLE asignaturas CASCADE CONSTRAINTS';
+EXCEPTION
+   WHEN OTHERS THEN
+      IF SQLCODE = -942 THEN -- ORA-00942: si la tabla no existe
+         NULL; -- No hace
+      ELSE
+         RAISE; -- Re-lanzar cualquier otra excepción que no sea la de tabla inexistente.
+      END IF;
+END;
+/
 
 -- Creación de la tabla 'asignaturas' con sus respectivos campos y restricciones.
 -- Campos: idAsignatura (identificador de la asignatura), nombre, titulación a la que pertenece, y número de créditos.
@@ -55,7 +65,7 @@ EXCEPTION
 END insertaAsignatura;
 /
 
--- 1. MÉTODO CON CREATE TABLE ---------------------------------------------------------------------------------
+-- 2. MÉTODO CON SQLERRM ---------------------------------------------------------------------------------
 
 create or replace procedure insertaAsignatura_con_sqlerrm(
   v_idAsignatura integer, v_nombreAsig varchar, v_titulacion varchar, v_ncreditos integer) is
@@ -129,7 +139,8 @@ create or replace procedure test_asignaturas is
         v_valorActual   varchar(100);
       begin
        insertaAsignatura ( 2, 'PROGRAMACION', 'GRADO INFORMATICA', 6);
-       rollback; --por si se olvido hacer commit en insertaAsignatura
+       --rollback; --por si se olvido hacer commit en insertaAsignatura
+       -- Elimino el rollback porque sino entiendo que va a dar error el último test
 
         SELECT listagg(idAsignatura||nombre||titulacion||ncreditos, '#')
           within group (order by idAsignatura, titulacion) todoJunto
