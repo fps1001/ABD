@@ -21,9 +21,9 @@ BEGIN
 EXCEPTION
    WHEN OTHERS THEN
       IF SQLCODE = -942 THEN -- ORA-00942: si la tabla no existe
-         NULL; -- No hace
+         NULL; -- No hace nada
       ELSE
-         RAISE; -- Re-lanzar cualquier otra excepción que no sea la de tabla inexistente.
+         RAISE; -- Re-lanza cualquier otra excepción que no sea la de tabla inexistente.
       END IF;
 END;
 /
@@ -43,26 +43,40 @@ create table asignaturas(
 -- 1. MÉTODO CON SELECTS ---------------------------------------------------------------------------------
 -- Las nombro diferentes para no tener que comentar/descomentar el código
 create or replace procedure insertaAsignatura(
-  v_idAsignatura integer, v_nombreAsig varchar, v_titulacion varchar, v_ncreditos integer) is
-  v_count integer; -- Declaración de la variable contador
+  v_idAsignatura integer, v_nombreAsig varchar, v_titulacion varchar, v_ncreditos integer) 
+    IS
+    v_existente_nombre VARCHAR(200);
+  --v_count integer; -- Declaración de la variable contador
 BEGIN
   INSERT INTO asignaturas VALUES (
     v_idAsignatura, v_nombreAsig, v_titulacion, v_ncreditos);
 EXCEPTION
-  WHEN OTHERS THEN
-    IF SQLCODE = -1 THEN  -- Error ORA-00001 - Fallo de unidicidad
-      SELECT COUNT(*) INTO v_count FROM asignaturas -- Realizamos una select que devolverá el número de registros que coinciden
-      WHERE idAsignatura = v_idAsignatura AND titulacion = v_titulacion;
-
-      IF v_count > 0 THEN -- Si el contador es mayor que 0 indica que ya existe una fila con el mismo id-titulación
-        RAISE_APPLICATION_ERROR(-20000, 'La asignatura con idAsignatura=' || v_idAsignatura || ' está repetida en la titulación ' || v_titulacion || '.');
-      ELSE  -- Si no lo tiene el fallo es debido al nombre repetido de la asignatura.
-        RAISE_APPLICATION_ERROR(-20001, 'La asignatura con nombre=' || v_nombreAsig || ' está repetida en la titulación ' || v_titulacion || '.');
-      END IF;
-    ELSE
-      RAISE;
-    END IF;
+  
+    -- La siguiente select solo se realiza en caso de error mejorando la eficiencia.
+    -- Se elemina SELECT COUNT desaconsejada en los apuntes pg8.
+    -- SELECT COUNT(*) INTO v_count FROM asignaturas -- Realizamos una select que devolverá el número de registros que coinciden
+    WHEN DUP_VAL_ON_INDEX THEN -- En cambio uso DUP_VAL_ON_INDEX usado en apuntes p22 y p23
+        BEGIN
+            -- Intentamos bloquear la fila específica para ver si el error es por idAsignatura
+            SELECT nombre INTO v_existente_nombre 
+            FROM asignaturas 
+            WHERE idAsignatura = v_idAsignatura 
+            AND titulacion = v_titulacion 
+            FOR UPDATE;
+            
+            -- Si llegamos a este punto, el fallo es por idAsignatura duplicado porque existe un valor y no se ha generado error hasta aquí.
+            RAISE_APPLICATION_ERROR(-20000, 'La asignatura con idAsignatura=' || v_idAsignatura || 
+                ' está repetida en la titulación ' || v_titulacion || '.');
+        EXCEPTION
+            WHEN NO_DATA_FOUND THEN
+                -- Si se lanza la excepción es porque no encontramos la fila, entonces el fallo es por nombre repetido
+                RAISE_APPLICATION_ERROR(-20001, 'La asignatura con nombre=' || v_nombreAsig || 
+                    ' está repetida en la titulación ' || v_titulacion || '.');
+        END;
+    WHEN OTHERS THEN
+        RAISE;
 END insertaAsignatura;
+
 /
 
 -- 2. MÉTODO CON SQLERRM ---------------------------------------------------------------------------------
