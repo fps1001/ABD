@@ -36,6 +36,7 @@ create table asignaturas(
   nombre        varchar(20) not null,
   titulacion    varchar(20),
   ncreditos     integer,
+  -- Damos nombre a las restricciones que usaremos en el segundo método:
   constraint PK_Asignaturas primary key ( idAsignatura, titulacion ),
   constraint UNQ_Asignaturas unique (nombre, titulacion) 
 );
@@ -78,35 +79,6 @@ EXCEPTION
 END insertaAsignatura;
 
 /
-
--- 2. MÉTODO CON SQLERRM ---------------------------------------------------------------------------------
-
-create or replace procedure insertaAsignatura_con_sqlerrm(
-  v_idAsignatura integer, v_nombreAsig varchar, v_titulacion varchar, v_ncreditos integer) is
-
-BEGIN
-  INSERT INTO asignaturas VALUES (
-    v_idAsignatura,
-    v_nombreAsig,
-    v_titulacion,
-    v_ncreditos
-  );
-EXCEPTION
-  WHEN OTHERS THEN
-    IF SQLCODE = -1 THEN -- Error ORA-00001 - Fallo de unidicidad
-      IF SQLERRM LIKE '%asignaturas_pk%' THEN -- Se examina la variable del sistema. El texto de la misma indica en que parte está el error.
-        RAISE_APPLICATION_ERROR(-20000, 'La asignatura con idAsignatura=' || v_idAsignatura || ' esta repetida en la titulacion ' || v_titulacion || '.');
-      ELSIF SQLERRM LIKE '%asignaturas_nombre_uk%' THEN
-        RAISE_APPLICATION_ERROR(-20001, 'La asignatura con nombre=' || v_nombreAsig || ' esta repetida en la titulacion ' || v_titulacion || '.');
-      ELSE
-        RAISE;
-      END IF;
-    ELSE
-      RAISE;
-    END IF;
-END insertaAsignatura_con_sqlerrm;
-/
-
 
 --juego de pruebas automáticas
 create or replace procedure test_asignaturas is
@@ -154,7 +126,7 @@ create or replace procedure test_asignaturas is
       begin
        insertaAsignatura ( 2, 'PROGRAMACION', 'GRADO INFORMATICA', 6);
        --rollback; --por si se olvido hacer commit en insertaAsignatura
-       -- Elimino el rollback porque sino entiendo que va a dar error el último test
+       -- Elimino el rollback porque sino entiendo que va a dar error el último test siempre...
 
         SELECT listagg(idAsignatura||nombre||titulacion||ncreditos, '#')
           within group (order by idAsignatura, titulacion) todoJunto
@@ -178,6 +150,38 @@ create or replace procedure test_asignaturas is
     
   end;
   /
+
+set serveroutput on
+exec test_asignaturas;
+select * from asignaturas;
+commit;
+
+
+-- 2. MÉTODO CON SQLERRM ---------------------------------------------------------------------------------
+
+create or replace procedure insertaAsignatura(
+  v_idAsignatura integer, v_nombreAsig varchar, v_titulacion varchar, v_ncreditos integer) is
+
+BEGIN
+  INSERT INTO asignaturas VALUES (
+    v_idAsignatura,
+    v_nombreAsig,
+    v_titulacion,
+    v_ncreditos
+  );
+EXCEPTION
+    WHEN DUP_VAL_ON_INDEX THEN
+        -- Verificamos el mensaje de error para determinar qué restricción se violó
+        IF INSTR(SQLERRM, 'PK_ASIGNATURA') > 0 THEN
+            RAISE_APPLICATION_ERROR(-20002, 'La clave primaria para la asignatura ya existe. idAsignatura: ' || TO_CHAR(v_idAsignatura) || ', titulacion: ' || v_titulacion);
+        ELSIF INSTR(SQLERRM, 'UK_NOMBRE_ASIG_TITULACION') > 0 THEN
+            RAISE_APPLICATION_ERROR(-20003, 'El nombre de la asignatura ya existe en esta titulación. Nombre: ' || v_nombreAsig || ', titulacion: ' || v_titulacion);
+        ELSE
+            -- Para cualquier otro error no especificado, lo relanzamos
+            RAISE;
+        END IF;
+END insertaAsignatura;
+/
 
 set serveroutput on
 exec test_asignaturas;
