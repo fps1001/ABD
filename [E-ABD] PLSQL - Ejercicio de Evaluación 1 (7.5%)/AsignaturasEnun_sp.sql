@@ -12,6 +12,8 @@ Y la instalación de
 Oracle Instant Client Downloads for Microsoft Windows (x64) 64-bit
 - Después probé con docker sin éxito.
 - 22.03.24: Probé con livesql.oracle.com me parece un poco mejor que sqldeveloper: sobretodo la salida de compilador.
+- 25.03.24: Una vez solucionado el segundo método: tuve problemas con el %like% de los apuntes pues busca el error exacto, en vez de contenerlo.
+y el fallo contenido debía ser en mayusculas, empezó a funcionar. Revisé y subí el contenido.
 
 */
 
@@ -42,19 +44,18 @@ create table asignaturas(
 );
 
 -- 1. MÉTODO CON SELECTS ---------------------------------------------------------------------------------
--- Las nombro diferentes para no tener que comentar/descomentar el código
+-- Realizaré el test después de cada método así testeamos los dos.
 create or replace procedure insertaAsignatura(
   v_idAsignatura integer, v_nombreAsig varchar, v_titulacion varchar, v_ncreditos integer) 
     IS
     v_existente_nombre VARCHAR(200);
-  --v_count integer; -- Declaración de la variable contador
 BEGIN
   INSERT INTO asignaturas VALUES (
     v_idAsignatura, v_nombreAsig, v_titulacion, v_ncreditos);
 EXCEPTION
   
     -- La siguiente select solo se realiza en caso de error mejorando la eficiencia.
-    -- Se elemina SELECT COUNT desaconsejada en los apuntes pg8.
+    -- Se elemina SELECT COUNT desaconsejada en los apuntes (pg8).
     -- SELECT COUNT(*) INTO v_count FROM asignaturas -- Realizamos una select que devolverá el número de registros que coinciden
     WHEN DUP_VAL_ON_INDEX THEN -- En cambio uso DUP_VAL_ON_INDEX usado en apuntes p22 y p23
         BEGIN
@@ -75,7 +76,7 @@ EXCEPTION
                     ' está repetida en la titulación ' || v_titulacion || '.');
         END;
     WHEN OTHERS THEN
-        RAISE;
+        RAISE; -- En otros casos lanzamos la excepción
 END insertaAsignatura;
 
 /
@@ -175,8 +176,9 @@ EXCEPTION
           RAISE_APPLICATION_ERROR(-20001, 'La asignatura con nombre=' || v_nombreAsig || 
                   ' está repetida en la titulación ' || v_titulacion || '.');
         ELSE
-            dbms_output.put_line('Mal: esto indicaría que no detecta ni sqlerrm pk_asignaturas ni unq_asignaturas');
+          dbms_output.put_line('Mal: esto indicaría que no detecta ni sqlerrm pk_asignaturas ni unq_asignaturas');
           dbms_output.put_line('error='||SQLCODE||'=>'||SQLERRM); 
+          RAISE; -- En otros casos lanzamos la excepción
         END IF;
 
 end;
