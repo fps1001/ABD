@@ -159,31 +159,31 @@ commit;
 
 -- 2. MÉTODO CON SQLERRM ---------------------------------------------------------------------------------
 
-create or replace procedure insertaAsignatura(
-  v_idAsignatura integer, v_nombreAsig varchar, v_titulacion varchar, v_ncreditos integer) is
-
-BEGIN
-  INSERT INTO asignaturas VALUES (
-    v_idAsignatura,
-    v_nombreAsig,
-    v_titulacion,
-    v_ncreditos
-  );
+create or replace procedure insertaAsignatura (
+    v_idAsignatura integer, v_nombreAsig varchar, v_titulacion varchar, v_ncreditos integer) 
+is
+begin
+    insert into asignaturas values (v_idAsignatura, v_nombreAsig, v_titulacion, v_ncreditos);
 EXCEPTION
-    WHEN OTHERS THEN
-        -- Verificamos el mensaje de error para determinar qué restricción se violó
-        IF (SQLERRM LIKE '%PK_Asignaturas%')  THEN
-            RAISE_APPLICATION_ERROR(-20000, 'La clave primaria para la asignatura ya existe. idAsignatura: ' || TO_CHAR(v_idAsignatura) || ', titulacion: ' || v_titulacion);
-        ELSIF (SQLERRM LIKE '%UNQ_Asignaturas%') THEN
-            RAISE_APPLICATION_ERROR(-20001, 'El nombre de la asignatura ya existe en esta titulación. Nombre: ' || v_nombreAsig || ', titulacion: ' || v_titulacion);
+    WHEN DUP_VAL_ON_INDEX THEN -- DUP_VAL_ON_INDEX es el error ORA-00001 de fallo de unicidad
+        -- IF SQLERRM LIKE '%PK_Asignaturas%' THEN -- Con esta instrucción tiene que ser exactamente el valor PK....
+        -- Usamos INSTR para comprobar si el mensaje de error contiene el nombre de la restricción
+        IF INSTR(SQLERRM, 'PK_ASIGNATURAS') > 0 THEN
+          RAISE_APPLICATION_ERROR(-20000, 'La asignatura con idAsignatura=' || v_idAsignatura || 
+              ' está repetida en la titulación ' || v_titulacion || '.');
+        ELSIF INSTR(SQLERRM, 'UNQ_ASIGNATURAS') > 0 THEN
+          RAISE_APPLICATION_ERROR(-20001, 'La asignatura con nombre=' || v_nombreAsig || 
+                  ' está repetida en la titulación ' || v_titulacion || '.');
         ELSE
-            -- Para cualquier otro error no especificado, lo relanzamos
-            RAISE;
+            dbms_output.put_line('Mal: esto indicaría que no detecta ni sqlerrm pk_asignaturas ni unq_asignaturas');
+          dbms_output.put_line('error='||SQLCODE||'=>'||SQLERRM); 
         END IF;
-END insertaAsignatura;
+
+end;
 /
 
 set serveroutput on
 exec test_asignaturas;
 select * from asignaturas;
 commit;
+
