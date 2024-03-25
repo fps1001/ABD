@@ -170,12 +170,12 @@ BEGIN
     v_ncreditos
   );
 EXCEPTION
-    WHEN DUP_VAL_ON_INDEX THEN
+    WHEN OTHERS THEN
         -- Verificamos el mensaje de error para determinar qué restricción se violó
-        IF INSTR(SQLERRM, 'PK_ASIGNATURA') > 0 THEN
-            RAISE_APPLICATION_ERROR(-20002, 'La clave primaria para la asignatura ya existe. idAsignatura: ' || TO_CHAR(v_idAsignatura) || ', titulacion: ' || v_titulacion);
-        ELSIF INSTR(SQLERRM, 'UK_NOMBRE_ASIG_TITULACION') > 0 THEN
-            RAISE_APPLICATION_ERROR(-20003, 'El nombre de la asignatura ya existe en esta titulación. Nombre: ' || v_nombreAsig || ', titulacion: ' || v_titulacion);
+        IF (SQLERRM LIKE '%PK_Asignaturas%')  THEN
+            RAISE_APPLICATION_ERROR(-20000, 'La clave primaria para la asignatura ya existe. idAsignatura: ' || TO_CHAR(v_idAsignatura) || ', titulacion: ' || v_titulacion);
+        ELSIF (SQLERRM LIKE '%UNQ_Asignaturas%') THEN
+            RAISE_APPLICATION_ERROR(-20001, 'El nombre de la asignatura ya existe en esta titulación. Nombre: ' || v_nombreAsig || ', titulacion: ' || v_titulacion);
         ELSE
             -- Para cualquier otro error no especificado, lo relanzamos
             RAISE;
